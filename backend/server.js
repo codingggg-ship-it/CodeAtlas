@@ -12,6 +12,12 @@ app.get("/", (req, res) => {
 });
 
 const PORT = 5000;
+app.get("/api/repository", (req, res) => {
+  const githubUrl = req.query.url;
+  res.json({
+    githubUrl: githubUrl,
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`CodeAtlas server running on port ${PORT}`);
