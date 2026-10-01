@@ -25,8 +25,32 @@ app.get("/api/repository", async (req, res) => {
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
 
   const data = await response.json();
+  const branchResponse = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${data.default_branch}`,
+  );
 
-  res.json(data);
+  const branchData = await branchResponse.json();
+  const treeResponse = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchData.object.sha}?recursive=1`,
+  );
+
+  const treeData = await treeResponse.json();
+  const files = treeData.tree.map((item) => {
+    return {
+      path: item.path,
+      type: item.type === "blob" ? "file" : "folder",
+    };
+  });
+  res.json({
+    repository: {
+      name: data.name,
+      owner: data.owner.login,
+      description: data.description,
+      language: data.language,
+      defaultBranch: data.default_branch,
+    },
+    files: files,
+  });
 });
 
 app.listen(PORT, () => {
