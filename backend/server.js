@@ -12,11 +12,21 @@ app.get("/", (req, res) => {
 });
 
 const PORT = 5000;
-app.get("/api/repository", (req, res) => {
+app.get("/api/repository", async (req, res) => {
   const githubUrl = req.query.url;
-  res.json({
-    githubUrl: githubUrl,
-  });
+
+  const url = new URL(githubUrl);
+
+  const parts = url.pathname.split("/");
+
+  const owner = parts[1];
+  const repo = parts[2];
+
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+
+  const data = await response.json();
+
+  res.json(data);
 });
 
 app.listen(PORT, () => {
