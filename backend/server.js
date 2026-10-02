@@ -1,3 +1,4 @@
+const { findImports } = require("./analyzer");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -73,6 +74,32 @@ app.get("/api/repository/file", async (req, res) => {
   res.json({
     path: data.path,
     content: content,
+  });
+});
+app.get("/api/repository/analyze", async (req, res) => {
+  const githubUrl = req.query.url;
+  const filePath = req.query.path;
+
+  const url = new URL(githubUrl);
+
+  const parts = url.pathname.split("/");
+
+  const owner = parts[1];
+  const repo = parts[2];
+
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+  );
+
+  const data = await response.json();
+
+  const content = Buffer.from(data.content, "base64").toString("utf-8");
+
+  const imports = findImports(content);
+
+  res.json({
+    path: data.path,
+    imports: imports,
   });
 });
 app.listen(PORT, () => {
